@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CBAMS Admin Panel</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+</head>
+<body class="bg-blue-50 min-h-screen flex items-center justify-center p-4">
+
+  <div id="loginDiv" class="bg-white p-8 rounded shadow-md max-w-sm w-full">
+    <h2 class="text-2xl font-bold mb-6 text-blue-600 text-center">CBAMS Staff Login</h2>
+
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label for="email" class="block font-medium mb-1">Email</label>
+        <input id="email" type="email" required class="w-full border rounded p-2" />
+      </div>
+      <div>
+        <label for="password" class="block font-medium mb-1">Password</label>
+        <input id="password" type="password" required class="w-full border rounded p-2" />
+      </div>
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Login</button>
+    </form>
+
+    <p id="status" class="mt-4 text-center text-red-600"></p>
+  </div>
+
+  <div id="adminPanelDiv" class="hidden max-w-3xl mx-auto bg-white p-8 rounded shadow-md w-full">
+    <h1 class="text-3xl font-bold mb-6 text-blue-600">Welcome, Admin!</h1>
+
+    <button id="logoutBtn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 mb-6">Logout</button>
+
+    <section>
+      <h2 class="text-2xl font-semibold mb-4">Ban Appeals</h2>
+      <ul id="appealsList" class="space-y-3 max-h-96 overflow-y-auto border rounded p-4 bg-gray-100"></ul>
+    </section>
+  </div>
+
+  <script>
+    // Firebase config - replace with your own config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAIhuYRzhkaCf6Ds8IIgTl_Pbe0MRrF3WU",
+      authDomain: "cbams-website.firebaseapp.com",
+      databaseURL: "https://cbams-website-default-rtdb.firebaseio.com",
+      projectId: "cbams-website",
+      storageBucket: "cbams-website.firebasestorage.app",
+      messagingSenderId: "757319864195",
+      appId: "1:757319864195:web:afb8f91a8b2b355f6f70b6",
+      measurementId: "G-7SP5QR7MK7"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    const loginDiv = document.getElementById("loginDiv");
+    const adminPanelDiv = document.getElementById("adminPanelDiv");
+    const loginForm = document.getElementById("loginForm");
+    const statusText = document.getElementById("status");
+    const appealsList = document.getElementById("appealsList");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    // Show/hide panels based on login state
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        // Logged in
+        loginDiv.style.display = "none";
+        adminPanelDiv.classList.remove("hidden");
+        loadAppeals();
+      } else {
+        // Not logged in
+        loginDiv.style.display = "block";
+        adminPanelDiv.classList.add("hidden");
+        statusText.textContent = "";
+        appealsList.innerHTML = "";
+      }
+    });
+
+    loginForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const email = loginForm.email.value;
+      const password = loginForm.password.value;
+      statusText.style.color = "red";
+      statusText.textContent = "Logging in...";
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          statusText.textContent = "";
+          loginForm.reset();
+        })
+        .catch(error => {
+          statusText.textContent = "Login failed: " + error.message;
+        });
+    });
+
+    logoutBtn.addEventListener("click", () => {
+      auth.signOut();
+    });
+
+    // Load appeals from Firebase and display them
+    function loadAppeals() {
+      appealsList.innerHTML = "Loading appeals...";
+      db.ref("appeals").on("value", snapshot => {
+        appealsList.innerHTML = "";
+        const appeals = snapshot.val();
+        if (appeals) {
+          Object.entries(appeals).forEach(([key, appeal]) => {
+            const li = document.createElement("li");
+            li.className = "bg-white p-3 rounded shadow";
+
+            li.innerHTML = `
+              <p><strong>Username:</strong> ${escapeHtml(appeal.username)}</p>
+              <p><strong>User ID:</strong> ${escapeHtml(appeal.userid)}</p>
+              <p><strong>Reason:</strong> ${escapeHtml(appeal.reason)}</p>
+              <p><em>Submitted: ${new Date(appeal.timestamp).toLocaleString()}</em></p>
+            `;
+
+            appealsList.appendChild(li);
+          });
+        } else {
+          appealsList.textContent = "No appeals found.";
+        }
+      });
+    }
+
+    // Simple function to escape HTML to prevent injection
+    function escapeHtml(text) {
+      return text.replace(/[&<>"']/g, function(m) {
+        return ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        })[m];
+      });
+    }
+  </script>
+
+</body>
+</html>
