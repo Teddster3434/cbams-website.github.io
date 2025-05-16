@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CBAMS Ban Appeal & Chat</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  
+  <!-- Firebase SDKs (compat version for simplicity) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+</head>
+<body class="bg-blue-50 text-gray-800">
+
+  <header class="bg-white shadow p-4 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-blue-600">CBAMS</h1>
+    <nav class="space-x-4">
+      <a href="index.html" class="text-blue-500 hover:underline">Home</a>
+      <a href="appeal.html" class="text-blue-500 hover:underline font-semibold">Appeal Ban</a>
+      <a href="bans.html" class="text-blue-500 hover:underline">View Bans</a>
+      <a href="discuss.html" class="text-blue-500 hover:underline">Discuss</a>
+    </nav>
+  </header>
+
+  <main class="p-6 max-w-xl mx-auto">
+    <section id="appeal-section" class="mb-12">
+      <h2 class="text-3xl font-semibold text-center mb-6">Appeal Your Ban</h2>
+      <form id="appealForm" class="bg-white p-6 rounded shadow-md space-y-4">
+        <div>
+          <label class="block font-medium">Roblox Username</label>
+          <input type="text" name="username" required class="w-full border rounded p-2" />
+        </div>
+        <div>
+          <label class="block font-medium">Roblox User ID</label>
+          <input type="number" name="userid" required class="w-full border rounded p-2" />
+        </div>
+        <div>
+          <label class="block font-medium">Explain why you believe your ban should be lifted</label>
+          <textarea name="reason" required rows="5" class="w-full border rounded p-2"></textarea>
+        </div>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          Submit Appeal
+        </button>
+      </form>
+    </section>
+
+    <section id="chat-section" class="bg-white p-6 rounded shadow-md">
+      <h2 class="text-2xl font-semibold mb-4">Live Chat</h2>
+      <div id="chatMessages" class="border rounded p-4 h-48 overflow-y-auto mb-4 bg-gray-100"></div>
+      <form id="chatForm" class="flex space-x-2">
+        <input id="chatUsername" type="text" placeholder="Your username" required class="flex-grow border rounded p-2" />
+        <input id="chatMessage" type="text" placeholder="Your message" required class="flex-grow border rounded p-2" />
+        <button type="submit" class="bg-blue-600 text-white px-4 rounded hover:bg-blue-700">Send</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="bg-white text-center text-sm p-4 border-t mt-6">
+    &copy; 2025 CBAMS. All rights reserved.
+  </footer>
+
+  <script>
+    // Your Firebase config here - replace with your actual config!
+    const firebaseConfig = {
+      apiKey: "AIzaSyAIhuYRzhkaCf6Ds8IIgTl_Pbe0MRrF3WU",
+      authDomain: "cbams-website.firebaseapp.com",
+      databaseURL: "https://cbams-website-default-rtdb.firebaseio.com",
+      projectId: "cbams-website",
+      storageBucket: "cbams-website.firebasestorage.app",
+      messagingSenderId: "757319864195",
+      appId: "1:757319864195:web:afb8f91a8b2b355f6f70b6",
+      measurementId: "G-7SP5QR7MK7"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // --- Appeal Form submit handler ---
+    document.getElementById("appealForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const form = e.target;
+      const appealData = {
+        username: form.username.value.trim(),
+        userid: form.userid.value.trim(),
+        reason: form.reason.value.trim(),
+        timestamp: Date.now()
+      };
+
+      db.ref("appeals").push(appealData)
+        .then(() => {
+          alert("✅ Appeal submitted! Thank you.");
+          form.reset();
+        })
+        .catch(error => {
+          alert("❌ Error submitting appeal: " + error.message);
+        });
+    });
+
+    // --- Chat functionality ---
+    const chatMessagesEl = document.getElementById("chatMessages");
+
+    // Listen for new chat messages
+    db.ref("chat").limitToLast(50).on("child_added", snapshot => {
+      const data = snapshot.val();
+      const msgEl = document.createElement("div");
+      msgEl.textContent = `${data.username}: ${data.message}`;
+      msgEl.className = "mb-2";
+      chatMessagesEl.appendChild(msgEl);
+      chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+    });
+
+    // Chat form submit
+    document.getElementById("chatForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const username = document.getElementById("chatUsername").value.trim();
+      const message = document.getElementById("chatMessage").value.trim();
+      if(!username || !message) return;
+
+      db.ref("chat").push({
+        username,
+        message,
+        timestamp: Date.now()
+      });
+
+      document.getElementById("chatMessage").value = "";
+    });
+  </script>
+</body>
+</html>
