@@ -2,31 +2,54 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Appeal Ban | CBAMS</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
-  <!-- Firebase CDN scripts -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <!-- Firebase CDN -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body class="bg-blue-50 text-gray-800">
-  <header class="bg-white shadow p-4 flex justify-between items-center">
-    <h1 class="text-2xl font-bold text-blue-600">CBAMS</h1>
-    <nav class="space-x-4">
-      <a href="index.html" class="text-blue-500 hover:underline">Home</a>
-      <a href="appeal.html" class="text-blue-500 hover:underline font-semibold">Appeal Ban</a>
-      <a href="bans.html" class="text-blue-500 hover:underline">View Bans</a>
-      <a href="discuss.html" class="text-blue-500 hover:underline">Discuss</a>
-    </nav>
-  </header>
+  <main class="max-w-xl mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">Appeal Your Ban</h1>
 
-  <main class="p-6 max-w-xl mx-auto">
-    <h2 class="text-3xl font-semibold text-center mb-6">Appeal Your Ban</h2>
-    <form id="appealForm" class="bg-white p-6 rounded shadow-md space-y-4">
+    <form id="appealForm" class="bg-white p-6 rounded shadow space-y-4">
       <div>
-        <label class="block font-medium">Roblox Username</label>
-        <input type="text" name="username" required class="w-full border rounded p-2" />
+        <label class="block font-medium mb-1" for="username">Roblox Username</label>
+        <input type="text" id="username" name="username" required class="w-full border rounded p-2" />
       </div>
       <div>
-        <label class="block font-medium">Rob
+        <label class="block font-medium mb-1" for="userid">Roblox User ID</label>
+        <input type="number" id="userid" name="userid" required class="w-full border rounded p-2" />
+      </div>
+      <div>
+        <label class="block font-medium mb-1" for="reason">Why should your ban be lifted?</label>
+        <textarea id="reason" name="reason" rows="5" required class="w-full border rounded p-2"></textarea>
+      </div>
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">
+        Submit Appeal
+      </button>
+    </form>
+
+    <div id="message" class="mt-4 text-center font-semibold"></div>
+  </main>
+
+  <script>
+    // Your Firebase config — replace with your own!
+    const firebaseConfig = {
+      apiKey: "AIzaSyAIhuYRzhkaCf6Ds8IIgTl_Pbe0MRrF3WU",
+      authDomain: "cbams-website.firebaseapp.com",
+      databaseURL: "https://cbams-website-default-rtdb.firebaseio.com",
+      projectId: "cbams-website",
+      storageBucket: "cbams-website.firebasestorage.app",
+      messagingSenderId: "757319864195",
+      appId: "1:757319864195:web:1b1de99e0c9c9f446f70b6",
+      measurementId: "G-38DWDZHSZ2"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const form = document.getElementById("appealForm");
+    const messageD
