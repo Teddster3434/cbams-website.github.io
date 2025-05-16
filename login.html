@@ -3,44 +3,99 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Staff Login | CBAMS</title>
+  <title>CBAMS Admin Panel</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
-<body>
-  <h2>CBAMS Staff Login</h2>
-  <form id="loginForm">
-    <label>Email: <input type="email" id="email" required /></label><br />
-    <label>Password: <input type="password" id="password" required /></label><br />
-    <button type="submit">Login</button>
-  </form>
+<body class="bg-gray-100 text-gray-800">
 
-  <p id="status"></p>
+  <header class="bg-white shadow p-4">
+    <h1 class="text-2xl font-bold text-blue-600">CBAMS Admin Panel</h1>
+    <button onclick="logout()" class="float-right bg-red-500 text-white px-3 py-1 rounded">Logout</button>
+  </header>
+
+  <main class="p-6">
+    <h2 class="text-xl font-semibold mb-4">Ban Appeals</h2>
+    <table class="w-full table-auto bg-white shadow rounded">
+      <thead class="bg-gray-200">
+        <tr>
+          <th class="p-2 text-left">Username</th>
+          <th class="p-2 text-left">User ID</th>
+          <th class="p-2 text-left">Reason</th>
+          <th class="p-2 text-left">Status</th>
+          <th class="p-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="appealsTable" class="divide-y"></tbody>
+    </table>
+  </main>
 
   <script>
+    // Firebase config (update if needed)
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
+      apiKey: "AIzaSyAIhuYRzhkaCf6Ds8IIgTl_Pbe0MRrF3WU",
       authDomain: "cbams-website.firebaseapp.com",
+      databaseURL: "https://cbams-website-default-rtdb.firebaseio.com",
       projectId: "cbams-website",
+      storageBucket: "cbams-website.firebasestorage.app",
+      messagingSenderId: "757319864195",
+      appId: "1:757319864195:web:afb8f91a8b2b355f6f70b6",
+      measurementId: "G-7SP5QR7MK7"
     };
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const db = firebase.database();
 
-    document.getElementById("loginForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          document.getElementById("status").innerText = "✅ Login successful!";
-          window.location.href = "admin.html"; // Redirect to admin panel
-        })
-        .catch((error) => {
-          document.getElementById("status").innerText = "❌ Login failed: " + error.message;
-        });
+    // Auth state check
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = "login.html"; // Redirect to login if not logged in
+      } else {
+        loadAppeals();
+      }
     });
+
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = "login.html";
+      });
+    }
+
+    function loadAppeals() {
+      db.ref("appeals").on("value", (snapshot) => {
+        const data = snapshot.val();
+        const table = document.getElementById("appealsTable");
+        table.innerHTML = "";
+
+        if (!data) {
+          table.innerHTML = "<tr><td colspan='5' class='p-4 text-center'>No appeals found.</td></tr>";
+          return;
+        }
+
+        Object.entries(data).forEach(([id, appeal]) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="p-2">${appeal.username}</td>
+            <td class="p-2">${appeal.userid}</td>
+            <td class="p-2">${appeal.reason}</td>
+            <td class="p-2">${appeal.status || "Pending"}</td>
+            <td class="p-2 text-center space-x-2">
+              <button class="bg-green-500 text-white px-2 py-1 rounded" onclick="updateStatus('${id}', 'Approved')">Approve</button>
+              <button class="bg-red-500 text-white px-2 py-1 rounded" onclick="updateStatus('${id}', 'Denied')">Deny</button>
+            </td>
+          `;
+          table.appendChild(tr);
+        });
+      });
+    }
+
+    function updateStatus(id, status) {
+      db.ref("appeals/" + id).update({ status });
+    }
   </script>
+
 </body>
 </html>
