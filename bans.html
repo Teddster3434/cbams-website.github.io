@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>View Bans | CBAMS</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+</head>
+<body class="bg-blue-50 text-gray-800">
+  <main class="max-w-xl mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">View Your Bans</h1>
+
+    <form id="banLookupForm" class="mb-4">
+      <label class="block mb-2 font-medium">Enter your Roblox User ID</label>
+      <input type="number" id="userIdInput" class="w-full p-2 border rounded mb-2" required />
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Check Bans</button>
+    </form>
+
+    <div id="bansResult" class="bg-white p-4 rounded shadow"></div>
+  </main>
+
+  <script>
+    // Your Firebase config (replace with your actual config)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAIhuYRzhkaCf6Ds8IIgTl_Pbe0MRrF3WU",
+      authDomain: "cbams-website.firebaseapp.com",
+      databaseURL: "https://cbams-website-default-rtdb.firebaseio.com",
+      projectId: "cbams-website",
+      storageBucket: "cbams-website.firebasestorage.app",
