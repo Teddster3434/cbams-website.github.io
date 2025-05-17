@@ -119,9 +119,10 @@
     db.ref("appeals").on("value", snapshot => {
       appealsList.innerHTML = "";
       const appeals = snapshot.val();
+      console.log("Appeals loaded from Firebase:", appeals); // DEBUGGING LINE
 
       if (!appeals) {
-        appealsList.innerHTML = "<li>No appeals found.</li>";
+        appealsList.innerHTML = "<li class='text-center text-gray-500'>No appeals found.</li>";
         return;
       }
 
