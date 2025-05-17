@@ -3,69 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CBAMS Appeals & Admin Panel</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f0f4f8; margin: 0; padding: 20px; }
-    #adminPanelDiv, #loginDiv { display: none; }
-    form { margin-bottom: 20px; }
-    input, textarea { width: 100%; padding: 8px; margin: 6px 0; box-sizing: border-box; }
-    button { padding: 10px 20px; margin: 5px 5px 15px 0; cursor: pointer; }
-    button.accept { background-color: #2ecc71; color: white; border: none; }
-    button.deny { background-color: #e74c3c; color: white; border: none; }
-    .appeal { background: white; padding: 12px; margin-bottom: 12px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);}
-    hr { margin-top: 12px; margin-bottom: 12px; }
-    .status-pending { color: #f39c12; font-weight: bold; }
-    .status-accepted { color: #27ae60; font-weight: bold; }
-    .status-denied { color: #c0392b; font-weight: bold; }
-  </style>
-  <!-- Firebase SDKs -->
+  <title>CBAMS - Appeals & Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
-<body>
+<body class="bg-blue-50 min-h-screen p-6">
 
-  <h1>CBAMS Appeal System</h1>
-
-  <!-- Appeal Form for users -->
-  <div id="appealFormDiv">
-    <h2>Submit an Appeal</h2>
-    <form id="appealForm">
-      <input type="text" id="username" placeholder="Roblox Username" required />
-      <input type="text" id="discord" placeholder="Discord Username" required />
-      <textarea id="reason" placeholder="Reason for appeal" required></textarea>
-      <button type="submit">Submit Appeal</button>
+  <!-- Appeal Form -->
+  <div id="appealFormDiv" class="bg-white p-8 rounded shadow-md max-w-xl mx-auto mb-8">
+    <h2 class="text-2xl font-bold mb-6 text-blue-600 text-center">CBAMS Ban Appeal</h2>
+    <form id="appealForm" class="space-y-4">
+      <input id="username" type="text" placeholder="Roblox Username" required class="w-full border rounded p-2" />
+      <input id="discord" type="text" placeholder="Discord Username" required class="w-full border rounded p-2" />
+      <textarea id="reason" placeholder="Why should we unban you?" required class="w-full border rounded p-2"></textarea>
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Submit Appeal</button>
     </form>
-    <p id="appealStatus"></p>
+    <p id="appealStatus" class="mt-4 text-center text-green-600"></p>
   </div>
 
-  <!-- Staff Login Form -->
-  <div id="loginDiv">
-    <h2>Staff Login</h2>
-    <form id="loginForm">
-      <input type="email" id="email" placeholder="Email" required />
-      <input type="password" id="password" placeholder="Password" required />
-      <button type="submit">Login</button>
+  <!-- Login -->
+  <div id="loginDiv" class="bg-white p-8 rounded shadow-md max-w-sm mx-auto mb-8">
+    <h2 class="text-2xl font-bold mb-6 text-blue-600 text-center">CBAMS Staff Login</h2>
+    <form id="loginForm" class="space-y-4">
+      <input id="email" type="email" placeholder="Email" required class="w-full border rounded p-2" />
+      <input id="password" type="password" placeholder="Password" required class="w-full border rounded p-2" />
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Login</button>
     </form>
-    <p id="loginStatus" style="color:red;"></p>
+    <p id="loginStatus" class="mt-4 text-center text-red-600"></p>
   </div>
 
   <!-- Admin Panel -->
-  <div id="adminPanelDiv">
-    <h2>Admin Panel</h2>
-    <button id="logoutBtn">Logout</button>
-    <h3>Ban Appeals</h3>
-    <div id="appealsList">Loading appeals...</div>
+  <div id="adminPanelDiv" class="hidden max-w-3xl mx-auto bg-white p-8 rounded shadow-md w-full">
+    <h1 class="text-3xl font-bold mb-6 text-blue-600">Welcome, Admin!</h1>
+    <button id="logoutBtn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 mb-6">Logout</button>
+    <h2 class="text-2xl font-semibold mb-4">Ban Appeals</h2>
+    <ul id="appealsList" class="space-y-3 max-h-[500px] overflow-y-auto border rounded p-4 bg-gray-100"></ul>
   </div>
 
 <script>
-  // Your Firebase config here:
   const firebaseConfig = {
     apiKey: "AIzaSyAIhuYRzhkaCf6Ds8IIgTl_Pbe0MRrF3WU",
     authDomain: "cbams-website.firebaseapp.com",
     databaseURL: "https://cbams-website-default-rtdb.firebaseio.com",
     projectId: "cbams-website",
-    storageBucket: "cbams-website.firebasestorage.app",
+    storageBucket: "cbams-website.appspot.com",
     messagingSenderId: "757319864195",
     appId: "1:757319864195:web:afb8f91a8b2b355f6f70b6",
     measurementId: "G-7SP5QR7MK7"
@@ -75,140 +58,109 @@
   const auth = firebase.auth();
   const db = firebase.database();
 
-  const appealFormDiv = document.getElementById('appealFormDiv');
-  const adminPanelDiv = document.getElementById('adminPanelDiv');
-  const loginDiv = document.getElementById('loginDiv');
+  const appealForm = document.getElementById("appealForm");
+  const appealStatus = document.getElementById("appealStatus");
+  const loginForm = document.getElementById("loginForm");
+  const loginStatus = document.getElementById("loginStatus");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const appealsList = document.getElementById("appealsList");
 
-  const appealForm = document.getElementById('appealForm');
-  const appealsList = document.getElementById('appealsList');
-  const logoutBtn = document.getElementById('logoutBtn');
-  const loginForm = document.getElementById('loginForm');
-  const loginStatus = document.getElementById('loginStatus');
-  const appealStatus = document.getElementById('appealStatus');
+  const appealFormDiv = document.getElementById("appealFormDiv");
+  const loginDiv = document.getElementById("loginDiv");
+  const adminPanelDiv = document.getElementById("adminPanelDiv");
 
-  // Show appeal form & login form by default
-  appealFormDiv.style.display = 'block';
-  loginDiv.style.display = 'block';
-  adminPanelDiv.style.display = 'none';
-
-  // Listen for auth state changes
   auth.onAuthStateChanged(user => {
     if (user) {
-      // Staff logged in
-      appealFormDiv.style.display = 'none';
-      loginDiv.style.display = 'none';
-      adminPanelDiv.style.display = 'block';
+      appealFormDiv.style.display = "none";
+      loginDiv.style.display = "none";
+      adminPanelDiv.classList.remove("hidden");
       loadAppeals();
     } else {
-      // Not logged in
-      appealFormDiv.style.display = 'block';
-      loginDiv.style.display = 'block';
-      adminPanelDiv.style.display = 'none';
-      appealsList.innerHTML = 'Please log in to manage appeals.';
+      appealFormDiv.style.display = "block";
+      loginDiv.style.display = "block";
+      adminPanelDiv.classList.add("hidden");
+      appealsList.innerHTML = "";
     }
   });
 
-  // Appeal form submit
-  appealForm.addEventListener('submit', e => {
+  appealForm.addEventListener("submit", e => {
     e.preventDefault();
+    const username = document.getElementById("username").value.trim();
+    const discord = document.getElementById("discord").value.trim();
+    const reason = document.getElementById("reason").value.trim();
 
-    const username = document.getElementById('username').value.trim();
-    const discord = document.getElementById('discord').value.trim();
-    const reason = document.getElementById('reason').value.trim();
-
-    if (!username || !discord || !reason) {
-      appealStatus.style.color = 'red';
-      appealStatus.textContent = 'Please fill in all fields.';
-      return;
-    }
-
-    const newAppeal = {
+    db.ref("appeals").push({
       username,
       discord,
       reason,
       timestamp: Date.now(),
       status: "pending"
-    };
-
-    db.ref('appeals').push(newAppeal)
-      .then(() => {
-        appealStatus.style.color = 'green';
-        appealStatus.textContent = 'Appeal submitted successfully!';
-        appealForm.reset();
-      })
-      .catch(err => {
-        appealStatus.style.color = 'red';
-        appealStatus.textContent = 'Error submitting appeal: ' + err.message;
-      });
+    }).then(() => {
+      appealStatus.textContent = "Appeal submitted successfully!";
+      appealForm.reset();
+    }).catch(err => {
+      appealStatus.textContent = "Error: " + err.message;
+    });
   });
 
-  // Login form submit
-  loginForm.addEventListener('submit', e => {
+  loginForm.addEventListener("submit", e => {
     e.preventDefault();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-
-    loginStatus.textContent = 'Logging in...';
+    const email = loginForm.email.value;
+    const password = loginForm.password.value;
 
     auth.signInWithEmailAndPassword(email, password)
-      .then(() => {
-        loginStatus.textContent = '';
-        loginForm.reset();
-      })
-      .catch(err => {
-        loginStatus.textContent = 'Login failed: ' + err.message;
-      });
+      .then(() => loginForm.reset())
+      .catch(err => loginStatus.textContent = "Login failed: " + err.message);
   });
 
-  // Logout button
-  logoutBtn.addEventListener('click', () => {
-    auth.signOut();
-  });
+  logoutBtn.addEventListener("click", () => auth.signOut());
 
-  // Load appeals into admin panel
   function loadAppeals() {
-    appealsList.innerHTML = 'Loading appeals...';
-
-    db.ref('appeals').on('value', snapshot => {
-      appealsList.innerHTML = '';
+    db.ref("appeals").on("value", snapshot => {
+      appealsList.innerHTML = "";
       const appeals = snapshot.val();
 
       if (!appeals) {
-        appealsList.textContent = 'No appeals found.';
+        appealsList.innerHTML = "<li>No appeals found.</li>";
         return;
       }
 
       Object.entries(appeals).forEach(([key, appeal]) => {
-        const div = document.createElement('div');
-        div.className = 'appeal';
+        const li = document.createElement("li");
+        li.className = "bg-white p-4 rounded shadow space-y-2";
 
-        let statusClass = 'status-pending';
-        if (appeal.status === 'accepted') statusClass = 'status-accepted';
-        else if (appeal.status === 'denied') statusClass = 'status-denied';
+        let statusColor = "text-yellow-500";
+        if (appeal.status === "accepted") statusColor = "text-green-600";
+        if (appeal.status === "denied") statusColor = "text-red-600";
 
-        div.innerHTML = `
+        li.innerHTML = `
           <p><strong>Roblox Username:</strong> ${escapeHtml(appeal.username)}</p>
           <p><strong>Discord Username:</strong> ${escapeHtml(appeal.discord)}</p>
           <p><strong>Reason:</strong> ${escapeHtml(appeal.reason)}</p>
-          <p><strong>Status:</strong> <span class="${statusClass}">${appeal.status}</span></p>
-          <button class="accept" onclick="updateAppealStatus('${key}', 'accepted')">Accept</button>
-          <button class="deny" onclick="updateAppealStatus('${key}', 'denied')">Deny</button>
+          <p><strong>Status:</strong> <span class="${statusColor} font-semibold">${appeal.status}</span></p>
+          <div class="flex space-x-2">
+            <button onclick="updateAppealStatus('${key}', 'accepted')" class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700">Approve</button>
+            <button onclick="updateAppealStatus('${key}', 'denied')" class="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700">Deny</button>
+          </div>
         `;
 
-        appealsList.appendChild(div);
+        appealsList.appendChild(li);
       });
     });
   }
 
-  // Update appeal status in Firebase
-  function updateAppealStatus(key, status) {
-    db.ref('appeals/' + key).update({ status })
-      .then(() => {
-        alert(`Appeal marked as ${status}`);
-      })
-      .catch(err => {
-        alert('Error updating status: ' + err.message);
-      });
+  function updateAppealStatus(id, status) {
+    db.ref("appeals/" + id).update({ status })
+      .then(() => console.log("Updated appeal", id, "to", status))
+      .catch(err => alert("Error updating appeal: " + err.message));
   }
 
-  // Simple escape to
+  function escapeHtml(text) {
+    return text.replace(/[&<>"']/g, m => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[m]));
+  }
+</script>
+
+</body>
+</html>
