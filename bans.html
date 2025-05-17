@@ -2,31 +2,76 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>View Bans | CBAMS</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <!-- Firebase CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body class="bg-blue-50 text-gray-800">
-  <main class="max-w-xl mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-6 text-center">View Your Bans</h1>
+  <header class="bg-white shadow p-4 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-blue-600">CBAMS</h1>
+    <nav class="space-x-4">
+      <a href="index.html" class="text-blue-500 hover:underline">Home</a>
+      <a href="appeal.html" class="text-blue-500 hover:underline">Appeal</a>
+      <a href="view-bans.html" class="text-blue-600 font-semibold">View Bans</a>
+      <a href="discuss.html" class="text-blue-500 hover:underline">Discuss</a>
+    </nav>
+  </header>
 
-    <form id="banLookupForm" class="mb-4">
-      <label class="block mb-2 font-medium">Enter your Roblox User ID</label>
-      <input type="number" id="userIdInput" class="w-full p-2 border rounded mb-2" required />
-      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Check Bans</button>
-    </form>
-
-    <div id="bansResult" class="bg-white p-4 rounded shadow"></div>
+  <main class="p-6 max-w-4xl mx-auto">
+    <h2 class="text-3xl font-semibold mb-4 text-center">Bans List</h2>
+    <div id="banList" class="space-y-4">
+      <!-- Bans will be loaded here -->
+    </div>
   </main>
 
+  <footer class="bg-white text-center text-sm p-4 border-t mt-6">
+    &copy; 2025 CBAMS. All rights reserved.
+  </footer>
+
   <script>
-    // Your Firebase config (replace with your actual config)
     const firebaseConfig = {
       apiKey: "AIzaSyAIhuYRzhkaCf6Ds8IIgTl_Pbe0MRrF3WU",
       authDomain: "cbams-website.firebaseapp.com",
       databaseURL: "https://cbams-website-default-rtdb.firebaseio.com",
       projectId: "cbams-website",
       storageBucket: "cbams-website.firebasestorage.app",
+      messagingSenderId: "757319864195",
+      appId: "1:757319864195:web:afb8f91a8b2b355f6f70b6",
+      measurementId: "G-7SP5QR7MK7"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const banList = document.getElementById("banList");
+
+    db.ref("bans").once("value")
+      .then(snapshot => {
+        if (!snapshot.exists()) {
+          banList.innerHTML = "<p class='text-center text-gray-600'>No bans found.</p>";
+          return;
+        }
+
+        snapshot.forEach(child => {
+          const ban = child.val();
+          const banCard = document.createElement("div");
+          banCard.className = "bg-white shadow-md p-4 rounded border";
+
+          banCard.innerHTML = `
+            <h3 class="text-xl font-bold">${ban.username || "Unknown User"}</h3>
+            <p><strong>User ID:</strong> ${ban.userid || "N/A"}</p>
+            <p><strong>Reason:</strong> ${ban.reason || "No reason provided"}</p>
+            <p><strong>Timestamp:</strong> ${new Date(ban.timestamp || Date.now()).toLocaleString()}</p>
+          `;
+
+          banList.appendChild(banCard);
+        });
+      })
+      .catch(error => {
+        banList.innerHTML = `<p class="text-red-600">Error loading bans: ${error.message}</p>`;
+      });
+  </script>
+</body>
+</html>
